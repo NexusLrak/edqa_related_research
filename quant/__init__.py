@@ -1,14 +1,14 @@
 """
 Reproduction skeleton of the eDQA method. Module map:
 
-  quantizer.py    量化基元        symmetric quant, right-shift, shifting-error table
-  edqa_layer.py   Algorithm 1/2   eDQA layer quantize / de-quantize
-  ranking.py      Algorithm 3     greedy channel-importance ranking (IQ search)
-  compression.py  压缩模块        Huffman / Deflate / LZMA / ZSTD
-  hooks.py        激活钩子        forward-hook activation-quantization manager
-  data.py         数据集          CIFAR-10 / TinyImageNet + calibration subset
-  baselines.py    基线            Direct / PoT / NoisyQuant
-  evaluate.py     评估框架        Table 2, Figure 3/4, Table 1
+  quantizer.py      symmetric quant, right-shift, shifting-error table
+  edqa_layer.py     eDQA layer quantize / de-quantize
+  ranking.py        greedy channel-importance ranking (IQ search)
+  compression.py    Huffman / Deflate / LZMA / ZSTD
+  hooks.py          forward-hook activation-quantization manager
+  data.py           CIFAR-10 / TinyImageNet + calibration subset
+  baselines.py      Direct / PoT / NoisyQuant
+  evaluate.py       Table 2, Figure 3/4, Table 1
 """
 
 from .baselines import fake_quantize_noisyquant, fake_quantize_pot

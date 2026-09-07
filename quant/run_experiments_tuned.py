@@ -90,6 +90,14 @@ from .rank_surrogates import (
     rank_channels_via_stratified,
     rank_channels_via_surrogate_per_layer,
 )
+from .rank_gradient_surrogates import (
+    protection_gain_scores,
+    rank_channels_via_edqa_saliency,
+    rank_channels_via_fisher,
+    rank_channels_via_fisher_a2,
+    rank_channels_via_pg2,
+    rank_channels_via_saliency,
+)
 from .ranking import load_ranks, rank_channels, save_ranks
 from .results_logger import RunContext
 from .run_experiments import EXPERIMENTS
@@ -100,7 +108,10 @@ VARIANTS = {
     "clip_p99": dict(clip_percentile=99.0),
 }
 
-RANKINGS = ("greedy", "surrogate", "energy", "stratified")
+RANKINGS = (
+    "greedy", "surrogate", "energy", "stratified",
+    "saliency", "fisher", "fisher_a2", "protection_gain", "pg2", "edqa_saliency",
+)
 
 
 def _rank_cache_suffix(calib_seed: int) -> str:
@@ -197,6 +208,51 @@ def _get_ranks(
             ranks = rank_channels_via_stratified(
                 model, calib, layer_names, device, r=cfg["r"], channel_dim=channel_dim,
             )
+        save_ranks(ranks, rank_path)
+        return ranks
+
+    if ranking in ("saliency", "fisher", "fisher_a2"):
+        # Cache keyed only on calib_seed -- same reasoning as "energy": these are
+        # raw activation/gradient statistics from calibration data, no
+        # clip_percentile/scale computation involved (see
+        # rank_gradient_surrogates.compute_pq_scores).
+        rank_path = f"ranks_{name}_{ranking}_calibseed{calib_seed}.json"
+        if os.path.exists(rank_path):
+            return load_ranks(rank_path)
+        calib = calibration_loader(train_set, cfg["calib_size"], seed=calib_seed)
+        fn = {"saliency": rank_channels_via_saliency, "fisher": rank_channels_via_fisher,
+              "fisher_a2": rank_channels_via_fisher_a2}[ranking]
+        with ctx.timed("ranking"):
+            ranks = fn(model, calib, layer_names, device, channel_dim=channel_dim, calib_batches=1)
+        save_ranks(ranks, rank_path)
+        return ranks
+
+    if ranking in ("protection_gain", "pg2", "edqa_saliency"):
+        # Cache keyed on (variant, calib_seed) like "surrogate": pg is computed
+        # via fake_quantize_direct(..., clip_percentile=...), so it DOES depend
+        # on --variant, unlike saliency/fisher/fisher_a2/energy above.
+        # Reference configuration throughout this project (n=3, m=3) -- see
+        # dissertation §3.2.3, "established at one reference bit-budget
+        # configuration".
+        rank_path = f"ranks_{name}_{ranking}_{variant}{suffix}.json"
+        if os.path.exists(rank_path):
+            return load_ranks(rank_path)
+        calib = calibration_loader(train_set, cfg["calib_size"], seed=calib_seed)
+        with ctx.timed("ranking"):
+            if ranking == "edqa_saliency":
+                ranks = rank_channels_via_edqa_saliency(
+                    model, calib, layer_names, channel_dim=channel_dim, device=device,
+                    n_bits=3, m=3, clip_percentile=clip_percentile,
+                )
+            else:
+                pg = protection_gain_scores(
+                    model, calib, layer_names, channel_dim=channel_dim, device=device,
+                    n_bits=3, m=3, clip_percentile=clip_percentile,
+                )
+                ranks = (
+                    {n: v.argsort(descending=True).tolist() for n, v in pg.items()}
+                    if ranking == "protection_gain" else rank_channels_via_pg2(pg)
+                )
         save_ranks(ranks, rank_path)
         return ranks
 

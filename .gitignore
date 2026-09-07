@@ -1,0 +1,27 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Local Claude Code tool config (not project content)
+.claude/
+
+# Datasets (downloadable from their canonical sources; not redistributed here)
+data/
+
+# Trained checkpoints and Kaggle upload/deploy staging (large binaries)
+model/checkpoints/
+model/kaggle_upload/
+model/kaggle_upload_quant/
+
+# Built portable package (submitted separately as a zip, not via GitHub)
+packaging/dist/
+
+# Experiment logs, dated research notes, rank caches, backups
+# (submitted alongside the code package rather than tracked here)
+quant/experiment_logs/
+quant/RESULTS.md
+quant/EXTENSION_WORK.md
+quant/PROBLEM_EVOLUTION.md
+DISSERTATION_PROGRESS.md
+ranks_*.json
+remote_backup/

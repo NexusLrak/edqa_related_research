@@ -60,8 +60,7 @@ def fake_quantize_noisyquant(
 
     NOTE (simplification): the original searches a structured bias offline over
     calibration data; here the search is a lightweight per-tensor random search so
-    the module is self-contained. Swap this out for the authors' released search
-    if you need to match their exact numbers.
+    the module is self-contained.
     """
     base_scale, _ = compute_scale(x, n_bits, channel_dim=channel_dim, clip_percentile=clip_percentile)
     qmin, qmax = quant_range(n_bits)

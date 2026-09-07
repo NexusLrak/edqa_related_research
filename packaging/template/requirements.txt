@@ -1,0 +1,10 @@
+# torch/torchvision: install the build matching the platform's CUDA version
+# BEFORE this file if the platform doesn't already ship one (see README.md) --
+# https://pytorch.org/get-started/locally/ for the right index-url/version.
+torch>=2.0
+torchvision>=0.15
+numpy
+
+# optional, only needed for quant.evaluate.compression_table (Table 1) -- NOT
+# used by run.py's Table2/Figure3/Figure4 pipeline, safe to skip.
+# zstandard

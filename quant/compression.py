@@ -16,7 +16,6 @@ Notes:
   * Huffman is implemented from scratch (heapq + real bit-packing) so the package
     is dependency-light and the compression ratio reflects genuine bit savings.
   * Deflate -> zlib, LZMA -> lzma (both stdlib).
-  * ZSTD needs the `zstandard` package; if missing we raise a clear message.
   * The paper runs compression/decompression on CPU while inference runs on GPU,
     so latency should be timed on CPU (see evaluate.py).
 """

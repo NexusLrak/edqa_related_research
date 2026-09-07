@@ -4,26 +4,12 @@ quantizer.py
 
 Uniform symmetric quantization (the paper's "Direct" method), plus the
 right-shift + shifting-error machinery that eDQA builds on.
-
-Reproduction notes (读的时候特别注意):
-  * scale 是 **逐通道 (per-channel)** 的 |max|，不是整层共用一个标量。这是跟
-    论文作者直接确认过的（2026-07 邮件往来）："And yes, it's per channel
-    quantization." Algorithm 1/2 写的 |max(A_layer)| 字面上容易读成整层共享，
-    但实际实现是每个 channel 各自算自己的 max/scale。见 `compute_scale` 的
-    `channel_dim` 参数（默认 1，即逐通道）；传 `channel_dim=None` 可以切回旧的
-    整层字面实现，用于对比/消融。
-  * 论文分母用 2^(N-1); 更常见的对称量化写法是 2^(N-1)-1。这里默认严格照论文
-    (SCALE_DENOM_MINUS_ONE=False), 想切换成标准写法把它设 True。
-  * shifting error 的语义 = "读取低 m 位再映射成小数", 与 Round(I/Δ_{N+m}) 右移
-    m 位一致 (见 Eq.(3))。低 m 位整数 k -> 小数 k / 2^m, 落在 [0, 1)。
-    m=3 时正好是 {0, 0.125, ..., 0.875}, 即论文 Figure 2 的横轴。
 """
 
 from __future__ import annotations
 
 import torch
 
-# 论文严格写法用 2^(N-1); 设 True 切成标准对称量化 2^(N-1)-1
 SCALE_DENOM_MINUS_ONE = False
 
 

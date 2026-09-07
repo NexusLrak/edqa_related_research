@@ -83,21 +83,13 @@ def build_vit_b16_tinyimagenet():
     10-epoch local fine-tune reached 83.86% val accuracy; continued training on
     Kaggle (T4x2, model/kaggle_finetune_vit.py, low peak LR 2e-5/1e-5/5e-6 across
     several --resume rounds to avoid the cosine-restart regression seen at the
-    original 1e-4 -- see quant/README.md), finishing with 20 epochs at a low
+    original 1e-4), finishing with 20 epochs at a low
     LR (3e-6); the last 10 of those epochs plateaued around 84.5% (final:
-    84.63-84.65%, verified 2026-07-19). This is a genuine plateau, not an
-    under-trained checkpoint -- still well short of the paper's "Ori Acc" of
+    84.63-84.65%, verified 2026-07-19). Still well short of the paper's "Ori Acc" of
     88.31%, plausibly because the fine-tuning recipe itself (AdamW, cosine,
     these epoch counts/LRs) isn't what the paper used -- their exact ViT
     hyperparameters aren't published. Treat the 88.31% gap as a known reproduction
     limitation, not a bug to keep chasing indefinitely.
-
-    Separately (2026-07-19): all ViT numbers produced before this date used
-    vit_mlp_target_layers, which only hooks each block's final MLP output (12 of
-    37 activation-producing layers) -- see that function's docstring for why this
-    was a real bug (near-zero Direct-quantization degradation vs the paper's
-    73pp collapse) and not just noise. EXPERIMENTS now uses vit_full_target_layers
-    instead; any ViT numbers recorded before this fix should be treated as stale.
     """
     from torchvision.models import vit_b_16
     model = vit_b_16()
